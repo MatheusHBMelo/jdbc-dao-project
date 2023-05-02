@@ -82,7 +82,8 @@ public class Seller implements Serializable {
 
     public String toString(){
         return "ID: " + id + " - Name: " + name + " - Email: " + email + " - Birth Date: " + sdf.format(birthDate) +
-                " - Base Salary: " + String.format("%.2f", baseSalary) + " - Department id: " + department.getId();
+                " - Base Salary: " + String.format("%.2f", baseSalary) + " - Department id: " + department.getId() +
+                " - Department Name: " + department.getName();
     }
 
     @Override
