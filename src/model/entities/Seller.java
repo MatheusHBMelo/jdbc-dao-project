@@ -22,7 +22,7 @@ public class Seller implements Serializable {
     }
 
     public Seller(Integer id, String name, String email, Date birthDate, Double baseSalary, Department department) {
-        this.id = Objects.requireNonNull(id, "O ID não pode ser nulo!");
+        this.id = id;
         this.name = name;
         this.email = email;
         this.birthDate = birthDate;
