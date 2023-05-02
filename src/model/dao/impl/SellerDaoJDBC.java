@@ -41,26 +41,15 @@ public class SellerDaoJDBC implements SellerDao {
         String sql = "SELECT seller.*, department.Name as DepName " +
                 "FROM seller INNER JOIN department ON seller.DepartmentId = department.Id " +
                 "WHERE seller.Id = ?";
-
         try {
             ps = conn.prepareStatement(sql);
             ps.setInt(1, id);
             rs = ps.executeQuery();
 
             if (rs.next()){
-                Department dep = new Department();
-                dep.setId(rs.getInt("DepartmentId"));
-                dep.setName(rs.getString("DepName"));
-                Seller sell = new Seller();
-                sell.setId(rs.getInt("Id"));
-                sell.setName(rs.getString("Name"));
-                sell.setEmail(rs.getString("Email"));
-                sell.setBirthDate(rs.getDate("BirthDate"));
-                sell.setBaseSalary(rs.getDouble("BaseSalary"));
-                sell.setDepartment(dep);
-                return sell;
+                Department dep = instantiateDepartment(rs);
+                return instantiateSeller(rs, dep);
             }
-
             return null;
         } catch (SQLException e){
             throw new DbException(e.getMessage());
@@ -73,5 +62,23 @@ public class SellerDaoJDBC implements SellerDao {
     @Override
     public List<Seller> findAll() {
         return null;
+    }
+
+    private Department instantiateDepartment(ResultSet rs) throws SQLException {
+        Department dep = new Department();
+        dep.setId(rs.getInt("DepartmentId"));
+        dep.setName(rs.getString("DepName"));
+        return dep;
+    }
+
+    private Seller instantiateSeller(ResultSet rs, Department dep) throws SQLException {
+        Seller seller = new Seller();
+        seller.setId(rs.getInt("Id"));
+        seller.setName(rs.getString("Name"));
+        seller.setEmail(rs.getString("Email"));
+        seller.setBirthDate(rs.getDate("BirthDate"));
+        seller.setBaseSalary(rs.getDouble("BaseSalary"));
+        seller.setDepartment(dep);
+        return seller;
     }
 }
