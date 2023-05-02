@@ -15,7 +15,7 @@ public class Department implements Serializable {
 
     public Department(Integer id, String name){
         this.id = Objects.requireNonNull(id, "O ID não pode ser nulo");
-        this.name = Objects.requireNonNull(name, "O nome não pode ser nulo");
+        this.name = name;
     }
 
     public Integer getId(){
