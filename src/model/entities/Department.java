@@ -2,7 +2,6 @@ package model.entities;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.Objects;
 
 public class Department implements Serializable {
     @Serial
@@ -11,7 +10,7 @@ public class Department implements Serializable {
     private Integer id;
     private String name;
 
-    public Department(){};
+    public Department(){}
 
     public Department(Integer id, String name){
         this.id = id;

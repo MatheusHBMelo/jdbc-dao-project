@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 public class SellerDaoJDBC implements SellerDao {
-    private Connection conn;
+    private final Connection conn;
 
     public SellerDaoJDBC(Connection conn){
         this.conn = conn;
@@ -22,53 +22,58 @@ public class SellerDaoJDBC implements SellerDao {
 
     @Override
     public void insert(Seller obj) {
-        PreparedStatement ps = null;
-        try {
-            ps = conn.prepareStatement("INSERT INTO seller(Name, Email, BirthDate, BaseSalary, DepartmentId) " +
-                            "VALUES(?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
-            ps.setString(1, obj.getName());
-            ps.setString(2, obj.getEmail());
-            ps.setDate(3, new java.sql.Date(obj.getBirthDate().getTime()));
-            ps.setDouble(4, obj.getBaseSalary());
-            ps.setInt(5, obj.getDepartment().getId());
-
-            int rowsAffected = ps.executeUpdate();
-
-            if (rowsAffected > 0){
-                ResultSet rs = ps.getGeneratedKeys();
-                if (rs.next()){
-                    int id = rs.getInt(1);
-                    obj.setId(id);
+        if (obj == null) {
+            throw new IllegalArgumentException("Seller object cannot be null.");
+        } else {
+            PreparedStatement ps = null;
+            try {
+                ps = conn.prepareStatement("INSERT INTO seller(Name, Email, BirthDate, BaseSalary, DepartmentId) " +
+                        "VALUES(?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+                ps.setString(1, obj.getName());
+                ps.setString(2, obj.getEmail());
+                ps.setDate(3, new java.sql.Date(obj.getBirthDate().getTime()));
+                ps.setDouble(4, obj.getBaseSalary());
+                ps.setInt(5, obj.getDepartment().getId());
+                int rowsAffected = ps.executeUpdate();
+                if (rowsAffected > 0) {
+                    ResultSet rs = ps.getGeneratedKeys();
+                    if (rs.next()) {
+                        int id = rs.getInt(1);
+                        obj.setId(id);
+                    }
+                    DB.closeResultSet(rs);
+                } else {
+                    throw new DbException("Failed to insert seller " + obj.getName() + ". No rows affected.");
                 }
-                DB.closeResultSet(rs);
-            } else {
-                throw new DbException("Unexpected Error! No rows affected.");
+            } catch (SQLException e) {
+                throw new DbException(e.getMessage());
+            } finally {
+                DB.closeStatement(ps);
             }
-        } catch (SQLException e){
-            throw new DbException(e.getMessage());
-        } finally {
-            DB.closeStatement(ps);
         }
     }
 
     @Override
     public void update(Seller obj) {
-        PreparedStatement ps = null;
-        String sql = "UPDATE seller SET Name = ?, Email = ?, BirthDate = ?, BaseSalary = ?, DepartmentId = ? WHERE Id = ?";
-        try {
-            ps = conn.prepareStatement(sql);
-            ps.setString(1, obj.getName());
-            ps.setString(2, obj.getEmail());
-            ps.setDate(3, (Date) obj.getBirthDate());
-            ps.setDouble(4, obj.getBaseSalary());
-            ps.setInt(5, obj.getDepartment().getId());
-            ps.setInt(6, obj.getId());
-
-            ps.executeUpdate();
-        } catch (SQLException e){
-            throw new DbException(e.getMessage());
-        } finally {
-            DB.closeStatement(ps);
+        if (obj == null) {
+            throw new IllegalArgumentException("Seller object cannot be null.");
+        } else {
+            PreparedStatement ps = null;
+            String sql = "UPDATE seller SET Name = ?, Email = ?, BirthDate = ?, BaseSalary = ?, DepartmentId = ? WHERE Id = ?";
+            try {
+                ps = conn.prepareStatement(sql);
+                ps.setString(1, obj.getName());
+                ps.setString(2, obj.getEmail());
+                ps.setDate(3, (Date) obj.getBirthDate());
+                ps.setDouble(4, obj.getBaseSalary());
+                ps.setInt(5, obj.getDepartment().getId());
+                ps.setInt(6, obj.getId());
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                throw new DbException(e.getMessage());
+            } finally {
+                DB.closeStatement(ps);
+            }
         }
     }
 
@@ -80,7 +85,6 @@ public class SellerDaoJDBC implements SellerDao {
             ps = conn.prepareStatement(sql);
             ps.setInt(1, id);
             int rowAffected = ps.executeUpdate();
-
             if (rowAffected == 0){
                 throw new DbIntegrityException("The id entered does not exist in the database!");
             }
@@ -102,7 +106,6 @@ public class SellerDaoJDBC implements SellerDao {
             ps = conn.prepareStatement(sql);
             ps.setInt(1, id);
             rs = ps.executeQuery();
-
             if (rs.next()){
                 Department dep = instantiateDepartment(rs);
                 return instantiateSeller(rs, dep);
@@ -126,18 +129,14 @@ public class SellerDaoJDBC implements SellerDao {
         try {
             ps = conn.prepareStatement(sql);
             rs = ps.executeQuery();
-
             List<Seller> list = new ArrayList<>();
             Map<Integer, Department> map = new HashMap<>();
-
             while (rs.next()){
                 Department dep = map.get(rs.getInt("DepartmentId"));
-
                 if (dep == null){
                     dep = instantiateDepartment(rs);
                     map.put(rs.getInt("DepartmentId"), dep);
                 }
-
                 Seller seller = instantiateSeller(rs, dep);
                 list.add(seller);
             }
@@ -152,36 +151,37 @@ public class SellerDaoJDBC implements SellerDao {
 
     @Override
     public List<Seller> findByDepartment(Department department) {
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        String sql = "SELECT seller.*, department.Name as DepName " +
-                "FROM seller INNER JOIN department ON seller.DepartmentId = department.Id " +
-                "WHERE department.Id = ? " +
-                "ORDER BY Name";
-        try {
-            ps = conn.prepareStatement(sql);
-            ps.setInt(1, department.getId());
-            rs = ps.executeQuery();
-
-            List<Seller> list = new ArrayList<>();
-            Map<Integer, Department> map = new HashMap<>(); // Estrutura de map para validar se um departamento existe
-
-            while (rs.next()){
-                Department dep = map.get(rs.getInt("DepartmentId")); // Armazenando o departamento salvo no map
-
-                if (dep == null){ // Verificando se o departamento existe, se não, cria-se e armazena-se no map
-                    dep = instantiateDepartment(rs);
-                    map.put(rs.getInt("DepartmentId"), dep);
+        if (department == null) {
+            throw new IllegalArgumentException("Department object cannot be null.");
+        } else {
+            PreparedStatement ps = null;
+            ResultSet rs = null;
+            String sql = "SELECT seller.*, department.Name as DepName " +
+                    "FROM seller INNER JOIN department ON seller.DepartmentId = department.Id " +
+                    "WHERE department.Id = ? " +
+                    "ORDER BY Name";
+            try {
+                ps = conn.prepareStatement(sql);
+                ps.setInt(1, department.getId());
+                rs = ps.executeQuery();
+                List<Seller> list = new ArrayList<>();
+                Map<Integer, Department> map = new HashMap<>(); // Estrutura de map para validar se um departamento existe
+                while (rs.next()) {
+                    Department dep = map.get(rs.getInt("DepartmentId")); // Armazenando o departamento salvo no map
+                    if (dep == null) { // Verificando se o departamento existe, se não, cria-se e armazena-se no map
+                        dep = instantiateDepartment(rs);
+                        map.put(rs.getInt("DepartmentId"), dep);
+                    }
+                    Seller seller = instantiateSeller(rs, dep);
+                    list.add(seller);
                 }
-                Seller seller = instantiateSeller(rs, dep);
-                list.add(seller);
+                return list;
+            } catch (SQLException e) {
+                throw new DbException(e.getMessage());
+            } finally {
+                DB.closeStatement(ps);
+                DB.closeResultSet(rs);
             }
-            return list;
-        } catch (SQLException e){
-            throw new DbException(e.getMessage());
-        } finally {
-            DB.closeStatement(ps);
-            DB.closeResultSet(rs);
         }
     }
 

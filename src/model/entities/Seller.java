@@ -4,7 +4,6 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Objects;
 
 public class Seller implements Serializable {
     @Serial
@@ -15,11 +14,9 @@ public class Seller implements Serializable {
     private String email;
     private Date birthDate;
     private Double baseSalary;
-
     private Department department;
 
-    public Seller() {
-    }
+    public Seller() {}
 
     public Seller(Integer id, String name, String email, Date birthDate, Double baseSalary, Department department) {
         this.id = id;
@@ -78,7 +75,7 @@ public class Seller implements Serializable {
         this.department = department;
     }
 
-    private static SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 
     public String toString(){
         return "ID: " + id + " - Name: " + name + " - Email: " + email + " - Birth Date: " + sdf.format(birthDate) +
