@@ -30,7 +30,7 @@ public class Program {
         }
 
         System.out.println("\n========== TEST 4: Seller insert ==========");
-        Seller seller2 = new Seller(null, "Alexandre Caetano", "caeta@email.com", new Date(), 1000.00, department);
+        Seller seller2 = new Seller(null, "Alexandre Collins", "sopa@email.com", new Date(), 4000.00, department);
         sellerDao.insert(seller2);
         System.out.println("Inserted! New id: " + seller2.getId());
 
@@ -41,5 +41,9 @@ public class Program {
         sellerUp.getDepartment().setId(1);
         sellerDao.update(sellerUp);
         System.out.println("Update complete!");
+
+        System.out.println("\n========== TEST 5: Seller delete ==========");
+        sellerDao.deleteById(12);
+        System.out.println("Done!");
     }
 }
