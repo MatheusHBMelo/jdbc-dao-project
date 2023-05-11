@@ -26,6 +26,7 @@ public class SellerDaoJDBC implements SellerDao {
             throw new IllegalArgumentException("Seller object cannot be null.");
         } else {
             PreparedStatement ps = null;
+            ResultSet rs = null;
             try {
                 ps = conn.prepareStatement("INSERT INTO seller(Name, Email, BirthDate, BaseSalary, DepartmentId) " +
                         "VALUES(?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
@@ -36,12 +37,11 @@ public class SellerDaoJDBC implements SellerDao {
                 ps.setInt(5, obj.getDepartment().getId());
                 int rowsAffected = ps.executeUpdate();
                 if (rowsAffected > 0) {
-                    ResultSet rs = ps.getGeneratedKeys();
+                    rs = ps.getGeneratedKeys();
                     if (rs.next()) {
                         int id = rs.getInt(1);
                         obj.setId(id);
                     }
-                    DB.closeResultSet(rs);
                 } else {
                     throw new DbException("Failed to insert seller " + obj.getName() + ". No rows affected.");
                 }
@@ -49,6 +49,8 @@ public class SellerDaoJDBC implements SellerDao {
                 throw new DbException(e.getMessage());
             } finally {
                 DB.closeStatement(ps);
+                DB.closeResultSet(rs);
+                DB.closeConnection();
             }
         }
     }
@@ -73,6 +75,7 @@ public class SellerDaoJDBC implements SellerDao {
                 throw new DbException(e.getMessage());
             } finally {
                 DB.closeStatement(ps);
+                DB.closeConnection();
             }
         }
     }
@@ -92,6 +95,7 @@ public class SellerDaoJDBC implements SellerDao {
             throw new DbIntegrityException(e.getMessage());
         } finally {
             DB.closeStatement(ps);
+            DB.closeConnection();
         }
     }
 
@@ -116,6 +120,7 @@ public class SellerDaoJDBC implements SellerDao {
         } finally {
             DB.closeStatement(ps);
             DB.closeResultSet(rs);
+            DB.closeConnection();
         }
     }
 
@@ -146,6 +151,7 @@ public class SellerDaoJDBC implements SellerDao {
         } finally {
             DB.closeStatement(ps);
             DB.closeResultSet(rs);
+            DB.closeConnection();
         }
     }
 
@@ -181,6 +187,7 @@ public class SellerDaoJDBC implements SellerDao {
             } finally {
                 DB.closeStatement(ps);
                 DB.closeResultSet(rs);
+                DB.closeConnection();
             }
         }
     }
