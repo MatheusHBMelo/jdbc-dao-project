@@ -25,17 +25,17 @@ public class DepartmentDaoJDBC implements DepartmentDao {
             throw new IllegalArgumentException("Department object cannot be null.");
         } else {
             PreparedStatement ps = null;
+            ResultSet rs = null;
             try {
                 ps = conn.prepareStatement("INSERT INTO department(Name) VALUES(?)", Statement.RETURN_GENERATED_KEYS);
                 ps.setString(1, obj.getName());
                 int rowAffected = ps.executeUpdate();
                 if (rowAffected > 0) {
-                    ResultSet rs = ps.getGeneratedKeys();
+                    rs = ps.getGeneratedKeys();
                     if (rs.next()) {
                         int id = rs.getInt(1);
                         obj.setId(id);
                     }
-                    DB.closeResultSet(rs);
                 } else {
                     throw new DbException("Failed to insert department " + obj.getName() + ". No rows affected.");
                 }
@@ -43,6 +43,8 @@ public class DepartmentDaoJDBC implements DepartmentDao {
                 throw new DbException(e.getMessage());
             } finally {
                 DB.closeStatement(ps);
+                DB.closeResultSet(rs);
+                DB.closeConnection();
             }
         }
     }
@@ -63,6 +65,7 @@ public class DepartmentDaoJDBC implements DepartmentDao {
                 throw new DbException(e.getMessage());
             } finally {
                 DB.closeStatement(ps);
+                DB.closeConnection();
             }
         }
     }
@@ -82,6 +85,7 @@ public class DepartmentDaoJDBC implements DepartmentDao {
             throw new DbIntegrityException(e.getMessage());
         } finally {
             DB.closeStatement(ps);
+            DB.closeConnection();
         }
     }
 
@@ -104,6 +108,7 @@ public class DepartmentDaoJDBC implements DepartmentDao {
         } finally {
             DB.closeStatement(ps);
             DB.closeResultSet(rs);
+            DB.closeConnection();
         }
     }
 
@@ -126,6 +131,7 @@ public class DepartmentDaoJDBC implements DepartmentDao {
         } finally {
             DB.closeStatement(ps);
             DB.closeResultSet(rs);
+            DB.closeConnection();
         }
     }
 
